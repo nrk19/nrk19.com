@@ -1,0 +1,107 @@
+version: "3"  
+
+networks:
+  monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 177.0.0.0/24
+          gateway: 177.0.0.1
+
+volumes:
+  uptime-kuma_data:
+  prometheus_data:
+  grafana_data:
+
+services:
+  # cron-dyndns container (it will be running cron to update the server ip using the ionos api)
+  cron-dyndns:
+    build: ./dyndns
+    container_name: cron-dyndns
+    depends_on:
+      - web
+
+  # web container
+  web:
+    image: httpd:latest
+    container_name: web
+    volumes:
+      - ./htdocs:/usr/local/apache2/htdocs
+      - ./conf/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./conf/ssl/nrk19.com_private_key.key:/usr/local/apache2/conf/server.key
+      - ./conf/ssl/nrk19.com_cert.crt:/usr/local/apache2/conf/server.crt
+      - ./conf/ssl/nrk19.com_intermediate_cert.crt:/usr/local/apache2/conf/server-ca.crt
+      - /home/nrk/crs/first/lms/proj/web-project:/usr/local/apache2/htdocs/canales
+      - /home/nrk/proj/web/tranvia-jorge:/usr/local/apache2/htdocs/tranvia
+    ports:
+      - 8080:80
+      - 4443:443
+
+  # uptime-kuma container (to monitore server's status)
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    depends_on:
+      - web
+    restart: always    
+    environment:
+      UPTIME_KUMA_HOST: 0.0.0.0
+      UPTIME_KUMA_PORT: 3001
+    volumes:
+      - uptime-kuma_data:/app/data  
+
+  # grafana + prometheus configuration 
+  # apache exporter container - to obtain the data from server mod_status and use them with prometheus
+  apache-exporter:
+    image: lusotycoon/apache-exporter
+    container_name: apache-exporter
+    depends_on:
+      - web
+    privileged: true
+    ports:
+      - 9117
+    restart: unless-stopped
+    extra_hosts:
+    - "localhost:127.17.0.1"
+    entrypoint: /bin/apache_exporter --scrape_uri="https://sysadmin:risa@nrk19.com/status?auto/"
+    networks:
+      - default
+      - monitoring
+
+  # prometheus container
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    depends_on:
+      - apache-exporter
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    ports:
+      - 9090:9090
+    networks:
+      - default
+      - monitoring
+
+  # grafana container
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    depends_on:
+      - prometheus
+    ports:
+      - 3000:3000
+    networks:
+      - default
+      - monitoring
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+
