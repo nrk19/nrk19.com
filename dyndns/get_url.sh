@@ -5,7 +5,6 @@
 # (using ionos API)
 
 API_KEY=$(cat nrk19.dyndns)
-
 curl -X "POST" "https://api.hosting.ionos.com/dns/v1/dyndns" \
     -H "accept: application/json" \
     -H "X-API-Key: ${API_KEY}" \

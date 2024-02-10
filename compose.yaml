@@ -7,9 +7,9 @@ volumes:
 
 services:
   # cron-dyndns container (it will be running cron to update the server ip using the ionos api)
-  cron-dyndns:
+  dyndns:
     build: ./dyndns
-    container_name: cron-dyndns
+    container_name: dyndns
     depends_on:
       - web
 
