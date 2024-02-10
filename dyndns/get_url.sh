@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# get_url_dyndns.sh
+# get_url.sh
 # script to get the needed url to renew the dns register of a domain 
 # (using ionos API)
 
