@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # get_url_dyndns.sh
-# script to renew the dns register of a domain 
-# using ionos API
+# script to get the needed url to renew the dns register of a domain 
+# (using ionos API)
 
 API_KEY=$(cat nrk19.dyndns)
 
