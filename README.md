@@ -9,10 +9,10 @@ Dependencies:
 
 ## Table of contents
   - [Deploy](#deploy)
-  - Previous configuration
+  - [Previous configuration](#previous-configuration)
     - [Router configuration](#router-configuration)
     - [Dynamic DNS setup](#dynamic-dns-setup)
-  - Web server configuration
+  - [Web server configuration](#web-server-configuration)
     - [Obtain the SSL certificates using Certbot](#obtaining-ssl-certificates-with-certbot)
     - [Apache configuration](#apache-configuration)
     - [Grafana and Prometheus monitoring tools](#grafana-and-prometheus-monitoring-tools)
@@ -334,9 +334,9 @@ grafana:
     - grafana_data:/var/lib/grafana
 ```
 
-> We created the docker volume **grafana_data** to have persistency in our files.
+> We created the docker volume called **grafana_data** and **prometheus_data** to have persistency of the data after we remove the container.
 
-With the grafana container running, we will access with a navigator to the url **http://grafana:3000**. We will get into a login menu, we can access with the default login information, user: admin password: admin. 
+With the grafana container running, we will access with a navigator to the url **http://grafana:3000**. We will get into a login menu, we can access with the default login information: `user=admin password=admin`. 
 
 ![image-not-found](screenshots/grafana-login.png)
 
@@ -360,7 +360,7 @@ If the connection was successful we will see the following message:
 
 *Caption: prometheus successfully connected*
 
-We now should be able to create a new dashboard.
+After we connect both services, we should be able to create a new dashboard.
 
 ![image-not-found](screenshots/grafana-graph.png)
 
