@@ -9,9 +9,6 @@
 stop:
 	docker-compose down
 
-# build the test server image
-build_le_apache:
-	docker build -t lets-encrypt-apache certbot
 
 # run the web container used for the certbot test
 run_le_apache:
@@ -37,7 +34,7 @@ run_certbot:
 stop_le_apache:
 	docker stop le_apache 
 
-get_certs: stop build_le_apache run_le_apache run_certbot stop_le_apache
+get_certs: stop run_le_apache run_certbot stop_le_apache
 
 # deploy the server using docker-compose 
 deploy: stop
