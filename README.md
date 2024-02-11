@@ -1,4 +1,4 @@
-# Automated web server deploy
+# Web Server Deploy
 
 Deployment of a web server with analytics & monitoring functions using Docker containers.
 
@@ -274,7 +274,10 @@ apache-exporter:
 
 The apache_exporter container will be listening at port 9117 and will be supplying the information needed by prometheus.
 
-Now, we need to tell prometheus where to get the data. We will create a file called `prometheus.yaml`, and we will indicate the socket of the host that have the data we want to display. In this case **apache-exporter:9117** (docker-compose will resolve the address for us)
+Now, we need to tell prometheus where to get the data. We will create a file called `prometheus.yaml`, and we will indicate the socket of the host that have the data we want to display. In this case **apache-exporter:9117**
+
+> [!NOTE]
+> Since we have all the container in the same compose file, docker-compose will resolve the addresses for us
 
 ```yaml
 global:
@@ -331,16 +334,52 @@ grafana:
 
 > We created the docker volume **grafana_data** to have persistency in our files.
 
-With the grafana container running, we will access to http://<grafana-ip>/3000. We will get into a login menu, we can access with the default login information, user: admin password: admin. 
+With the grafana container running, we will access with a navigator to the url **http://grafana:3000**. We will get into a login menu, we can access with the default login information, user: admin password: admin. 
+
 ![image-not-found](screenshots/grafana-login.png)
 
-Once inside the Grafana main page, we will click in the menu on the left > Connections > Add new connection and we will select *Prometheus* as data source.
-![image-not-found](screenshots/prometheus-new-connection.png)
+Once inside the Grafana main page, we will click on **Menu (located on the web's upper left side) > Connections > Add new connection**, and we will select *Prometheus* as data source.
 
-We simply set the connection indicating the prometheus ip and port. In our case http://prometheus:9090/.
+Automated web server deploy![image-not-found](screenshots/prometheus-new-connection.png)
+
+We simply set the connection indicating the prometheus ip and port. In our case **http://prometheus:9090/**.
+
 ![image-not-found](screenshots/prometheus-ip.png)
 
 If the connection was successful we will see the following message:
+
 ![image-not-found](screenshots/prometheus-success.png)
+
+#### Grafana Virtual Host
+
+Now, we have grafana working in our local network. What we can to do now is redirect all the requests made to **https://nrk19.com/grafana/** to our grafana container. We will add the following virtual host to our httpd.conf:
+
+> [!NOTE]
+> We will need to create a subdomain and configure it to point to the main domain for this virtual host to work.
+
+```apache
+<VirtualHost *:443>
+    ServerName grafana.nrk19.com
+    ProxyPreserveHost on
+    ProxyPass / http://grafana:3000/
+    ProxyPassReverse / http://grafana:3000/
+
+    # authentication
+    <Location "/">
+        AuthType Digest
+        AuthName "admin"
+        AuthUserFile "/usr/local/apache2/htdocs/.htpasswd"
+        Require user admin
+    </Location>
+</VirtualHost>
+```
+*Fragment of [web/httpd.conf](web/httpd.conf)*
+
+And add this line into our main virtual host.
+
+```apache
+Redirect /grafana https://grafana.nrk19.com/
+```
+*Fragment of [web/httpd.conf](web/httpd.conf)*
 
 ## Benchmark
