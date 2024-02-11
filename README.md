@@ -18,7 +18,9 @@ Dependencies:
     - [Grafana and Prometheus monitoring tools](#grafana-and-prometheus-monitoring-tools)
       - [Prometheus configuration](#prometheus-configuration)
       - [Grafana configuration](#grafana-configuration)
+      - [Grafana virtual host creation](#grafana-virtual-host-creation)
   - [Benchmark](#benchmark)
+      - [Conclusions](#conclusions)
 
 ## Deploy
 
@@ -364,7 +366,7 @@ We now should be able to create a new dashboard.
 
 *Caption: apache_total_accesses graph*
 
-#### Grafana Virtual Host
+#### Grafana Virtual Host Creation
 
 Now we have **Grafana** running in our local network. What we can to do now is redirect all the requests made to **https://nrk19.com/grafana/** to our grafana container. We will add the following virtual host to our httpd.conf: (the Location authentication setup is optional)
 
@@ -419,6 +421,8 @@ We put the server into to efficiency tests:
 ![image-not-found](screenshots/ab-1000c-1000n-k.png)
 
 *Caption: 1000 clients and 1000 requests with -k flag*
+
+### Conclusions
 
 - The first test with high concurrency (1000) shows lower Requests per Second and higher Time per Request compared to the subsequent tests with lower concurrency.
 - Enabling Keep-Alive connections in the second and third tests significantly improves performance.
