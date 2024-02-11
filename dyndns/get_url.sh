@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # get_url.sh
 # script to get the needed url to renew the dns register of a domain 
@@ -12,6 +12,7 @@ curl -X "POST" "https://api.hosting.ionos.com/dns/v1/dyndns" \
     -d '{
         "domains": [
             "nrk19.com",
+            "www.nrk19.com",
             "uptime-kuma.nrk19.com",
             "grafana.nrk19.com"
         ],

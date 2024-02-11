@@ -4,6 +4,8 @@ volumes:
   uptime-kuma_data:
   prometheus_data:
   grafana_data:
+  certs:
+    external: true
 
 services:
   # cron-dyndns container (it will be running cron to update the server ip using the ionos api)
@@ -20,9 +22,12 @@ services:
     volumes:
       - ./htdocs:/usr/local/apache2/htdocs
       - ./conf/httpd.conf:/usr/local/apache2/conf/httpd.conf
-      - ./conf/ssl/nrk19.com_private_key.key:/usr/local/apache2/conf/server.key
-      - ./conf/ssl/nrk19.com_cert.crt:/usr/local/apache2/conf/server.crt
-      - ./conf/ssl/nrk19.com_intermediate_cert.crt:/usr/local/apache2/conf/server-ca.crt
+      - ./certbot/certs/server.crt:/usr/local/apache2/conf/server.crt
+      - ./certbot/certs/server.key:/usr/local/apache2/conf/server.key
+      - certs:/etc/letsencrypt
+      # - ./conf/ssl/nrk19.com_private_key.key:/usr/local/apache2/conf/server.key
+      # - ./conf/ssl/nrk19.com_cert.crt:/usr/local/apache2/conf/server.crt
+      # - ./conf/ssl/nrk19.com_intermediate_cert.crt:/usr/local/apache2/conf/server-ca.crt
       - /home/nrk/crs/first/lms/proj/web-project:/usr/local/apache2/htdocs/canales
       - /home/nrk/proj/web/tranvia-jorge:/usr/local/apache2/htdocs/tranvia
     ports:
