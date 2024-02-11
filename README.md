@@ -336,7 +336,7 @@ grafana:
 
 > We created the docker volume called **grafana_data** and **prometheus_data** to have persistency of the data after we remove the container.
 
-With the grafana container running, we will access with a navigator to the url **http://grafana:3000**. We will get into a login menu, we can access with the default login information: `user=admin password=admin`. 
+With the grafana container running, we will access with a navigator to the url **http://grafana:3000**. We will get into a login menu, the default credentials are: `user=admin password=admin`. 
 
 ![image-not-found](screenshots/grafana-login.png)
 
@@ -401,7 +401,7 @@ Redirect /grafana https://grafana.nrk19.com/
 
 To evaluate the efficiency of our server we will use **ab** (apache's benchmark). In most linux distributions, it is present on the package `apache-utils`.
 
-We put the server into to efficiency tests:
+We put the server into efficiency tests:
 - 100 clients and 1000 requests:
 
 ![image-not-found](screenshots/ab-100c-1000n.png)
