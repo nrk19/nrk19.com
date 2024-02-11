@@ -1,4 +1,5 @@
 manual
+.vscode
 htdocs/canales
 htdocs/tranvia
 dyndns/update_url
