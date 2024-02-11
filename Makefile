@@ -2,8 +2,8 @@
 # this file will be used to deploy the web server and all the dependencies
 
 # usage: 
-# 		 - `make all` will obtain the ssl certs and deploy the server
-# 		 - `make deploy` will deploy the server without obtaining new ssl certificates
+#  - `make all` will obtain the ssl certs and deploy the server
+#  - `make deploy` will deploy the server without obtaining new ssl certificates
 
 # first we stop the servere if is running, since cerbot test web server conflicts with main server
 stop:
