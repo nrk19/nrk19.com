@@ -404,21 +404,21 @@ To evaluate the efficiency of our server we will use **ab** (apache's benchmark)
 We put the server into efficiency tests:
 - **100 clients and 1000 requests**:
 
-![image-not-found](screenshots/ab-100c-1000n.png)
+<img src="screenshots/ab-100c-1000n.png" width="50%" alt="image-not-found">
 
 *Caption: 100 clients and 1000 requests without - k flag*
 
-![image-not-found](screenshots/ab-100c-1000n-k.png)
+<img src="screenshots/ab-100c-1000n-k.png" width="50%" alt="image-not-found">
 
 *Caption: 100 clients and 1000 requests with -k flag*
 
 - **1000 clients and 1000 requests**:
 
-![image-not-found](screenshots/ab-1000c-1000n.png){width=75%}
+<img src="screenshots/ab-1000c-1000n.png" width="50%" alt="image-not-found">
 
 *Caption: 1000 clients and 1000 requests without -k flag*
 
-![image-not-found](screenshots/ab-1000c-1000n-k.png)
+<img src="screenshots/ab-1000c-1000n-k.png" width="50%" alt="image-not-found">
 
 *Caption: 1000 clients and 1000 requests with -k flag*
 
