@@ -402,7 +402,7 @@ Redirect /grafana https://grafana.nrk19.com/
 To evaluate the efficiency of our server we will use **ab** (apache's benchmark). In most linux distributions, it is present on the package `apache-utils`.
 
 We put the server into efficiency tests:
-- 100 clients and 1000 requests:
+- **100 clients and 1000 requests**:
 
 ![image-not-found](screenshots/ab-100c-1000n.png)
 
@@ -412,9 +412,9 @@ We put the server into efficiency tests:
 
 *Caption: 100 clients and 1000 requests with -k flag*
 
-- 1000 clients and 1000 requests
+- **1000 clients and 1000 requests**:
 
-![image-not-found](screenshots/ab-1000c-1000n.png)
+![image-not-found](screenshots/ab-1000c-1000n.png){width=75%}
 
 *Caption: 1000 clients and 1000 requests without -k flag*
 
