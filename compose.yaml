@@ -20,8 +20,8 @@ services:
     image: httpd:latest
     container_name: web
     volumes:
-      - ./htdocs:/usr/local/apache2/htdocs
-      - ./conf/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./web/htdocs:/usr/local/apache2/htdocs
+      - ./web/httpd.conf:/usr/local/apache2/conf/httpd.conf
       - certs:/etc/letsencrypt
       - /home/nrk/crs/first/lms/proj/web-project:/usr/local/apache2/htdocs/canales
       - /home/nrk/proj/web/tranvia-jorge:/usr/local/apache2/htdocs/tranvia

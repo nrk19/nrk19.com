@@ -31,6 +31,7 @@ GET https://{{site}}/status
 [BasicAuth]
 sysadmin: risa
 
-
-
-
+# Grafana auth
+GET https://{{site}}/grafana
+[BasicAuth]
+sysadmin: risa
