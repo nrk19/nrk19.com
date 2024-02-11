@@ -193,7 +193,7 @@ web:
 ```
 *Fragment of [compose.yaml](compose.yaml)*
 
-We will map the docker volume **certs** to the container directory `/etc/letsencrypt`. The certificates will be located at `/etc/letsencrypt/live/[your-domain]/fullchain.pem` and `/etc/letsencrypt/live/[your-domain]/privkey.pem`. 
+We will map the docker volume *certs* to the container directory **/etc/letsencrypt**. The certificates will be located at `**/etc/letsencrypt/live/[your-domain]/fullchain.pem** and **/etc/letsencrypt/live/[your-domain]/privkey.pem**. 
 
 Also we map the ports and the volumes we need to. 
 
@@ -344,7 +344,7 @@ With the grafana container running, we will access with a navigator to the url *
 
 Once inside the Grafana main page, we will click on **Menu (located on the web's upper left side) > Connections > Add new connection**, and we will select *Prometheus* as data source.
 
-Automated web server deploy![image-not-found](screenshots/prometheus-new-connection.png)
+![image-not-found](screenshots/prometheus-new-connection.png)
 
 *Caption: select Prometheus as data source for Grafana*
 
@@ -364,7 +364,7 @@ We now should be able to create a new dashboard.
 
 ![image-not-found](screenshots/grafana-graph.png)
 
-*Caption: apache_total_accesses graph*
+*Caption: apache_accesses_total graph*
 
 #### Grafana Virtual Host Creation
 
@@ -425,5 +425,5 @@ We put the server into to efficiency tests:
 ### Conclusions
 
 - The first test with high concurrency (1000) shows lower Requests per Second and higher Time per Request compared to the subsequent tests with lower concurrency.
-- Enabling Keep-Alive connections in the second and third tests significantly improves performance.
-- The third test with 100 concurrency exhibits the highest Requests per Second and the lowest Time per Request, indicating improved efficiency at lower concurrency levels
+- Enabling Keep-Alive connections (-k flag) in the second and forth tests significantly improves performance.
+- The first test with 100 concurrency exhibits the highest Requests per Second and the lowest Time per Request, indicating improved efficiency at lower concurrency levels
