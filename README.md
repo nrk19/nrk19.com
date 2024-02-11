@@ -337,25 +337,34 @@ grafana:
 With the grafana container running, we will access with a navigator to the url **http://grafana:3000**. We will get into a login menu, we can access with the default login information, user: admin password: admin. 
 
 ![image-not-found](screenshots/grafana-login.png)
+*Caption: Grafana's login menu*
 
 Once inside the Grafana main page, we will click on **Menu (located on the web's upper left side) > Connections > Add new connection**, and we will select *Prometheus* as data source.
 
 Automated web server deploy![image-not-found](screenshots/prometheus-new-connection.png)
+*Caption: select Prometheus as data source for Grafana*
 
 We simply set the connection indicating the prometheus ip and port. In our case **http://prometheus:9090/**.
 
 ![image-not-found](screenshots/prometheus-ip.png)
+*Caption: set the prometheus ip on grafana*
 
 If the connection was successful we will see the following message:
 
 ![image-not-found](screenshots/prometheus-success.png)
+*Caption: prometheus successfully connected*
+
+We now should be able to create a new dashboard.
+
+![image-not-found](screenshots/grafana-graph.png)
+*Caption: apache_total_accesses graph*
 
 #### Grafana Virtual Host
 
-Now, we have grafana working in our local network. What we can to do now is redirect all the requests made to **https://nrk19.com/grafana/** to our grafana container. We will add the following virtual host to our httpd.conf:
+Now we have **Grafana** running in our local network. What we can to do now is redirect all the requests made to **https://nrk19.com/grafana/** to our grafana container. We will add the following virtual host to our httpd.conf: (the Location authentication setup is optional)
 
 > [!NOTE]
-> We will need to create a subdomain and configure it to point to the main domain for this virtual host to work.
+> For this virtual host to work, we will need to create a subdomain and configure it to point to the main domain. 
 
 ```apache
 <VirtualHost *:443>
@@ -364,7 +373,6 @@ Now, we have grafana working in our local network. What we can to do now is redi
     ProxyPass / http://grafana:3000/
     ProxyPassReverse / http://grafana:3000/
 
-    # authentication
     <Location "/">
         AuthType Digest
         AuthName "admin"
@@ -383,3 +391,26 @@ Redirect /grafana https://grafana.nrk19.com/
 *Fragment of [web/httpd.conf](web/httpd.conf)*
 
 ## Benchmark
+
+To evaluate the efficiency of our server we will use **ab** (apache's benchmark). In most linux distributions, it is present on the package `apache-utils`.
+
+We put the server into to efficiency tests:
+- 100 clients and 1000 requests:
+
+![image-not-found](screenshots/ab-100c-1000n.png)
+*Caption: 100 clients and 1000 requests without - k flag*
+
+![image-not-found](screenshots/ab-100c-1000n-k.png)
+*Caption: 100 clients and 1000 requests with -k flag*
+
+- 1000 clients and 1000 requests
+
+![image-not-found](screenshots/ab-1000c-1000n.png)
+*Caption: 1000 clients and 1000 requests without -k flag*
+
+![image-not-found](screenshots/ab-1000c-1000n-k.png)
+*Caption: 1000 clients and 1000 requests with -k flag*
+
+- The first test with high concurrency (1000) shows lower Requests per Second and higher Time per Request compared to the subsequent tests with lower concurrency.
+- Enabling Keep-Alive connections in the second and third tests significantly improves performance.
+- The third test with 100 concurrency exhibits the highest Requests per Second and the lowest Time per Request, indicating improved efficiency at lower concurrency levels
