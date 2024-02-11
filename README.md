@@ -46,7 +46,7 @@ Since our ISP are not providing us an static IP we will need to set a solution t
 Once we got our API key we will need to authorize the Dynamic DNS service to interact with our domain. We will go to [https://developer.hosting.ionos.es/docs/dns](https://developer.hosting.ionos.es/docs/dns) and click over **Authorize**.
 
 Now we will make a POST request with the following content: 
-> Where *${API_KEY}* is your valid API key and *nrk19.com* is your domain
+> Where *API_KEY* is your valid API key and *nrk19.com* is your domain
 ```sh
 curl -X "POST" "https://api.hosting.ionos.com/dns/v1/dyndns" \
     -H "accept: application/json" \
@@ -337,26 +337,31 @@ grafana:
 With the grafana container running, we will access with a navigator to the url **http://grafana:3000**. We will get into a login menu, we can access with the default login information, user: admin password: admin. 
 
 ![image-not-found](screenshots/grafana-login.png)
+
 *Caption: Grafana's login menu*
 
 Once inside the Grafana main page, we will click on **Menu (located on the web's upper left side) > Connections > Add new connection**, and we will select *Prometheus* as data source.
 
 Automated web server deploy![image-not-found](screenshots/prometheus-new-connection.png)
+
 *Caption: select Prometheus as data source for Grafana*
 
 We simply set the connection indicating the prometheus ip and port. In our case **http://prometheus:9090/**.
 
 ![image-not-found](screenshots/prometheus-ip.png)
+
 *Caption: set the prometheus ip on grafana*
 
 If the connection was successful we will see the following message:
 
 ![image-not-found](screenshots/prometheus-success.png)
+
 *Caption: prometheus successfully connected*
 
 We now should be able to create a new dashboard.
 
 ![image-not-found](screenshots/grafana-graph.png)
+
 *Caption: apache_total_accesses graph*
 
 #### Grafana Virtual Host
@@ -398,17 +403,21 @@ We put the server into to efficiency tests:
 - 100 clients and 1000 requests:
 
 ![image-not-found](screenshots/ab-100c-1000n.png)
+
 *Caption: 100 clients and 1000 requests without - k flag*
 
 ![image-not-found](screenshots/ab-100c-1000n-k.png)
+
 *Caption: 100 clients and 1000 requests with -k flag*
 
 - 1000 clients and 1000 requests
 
 ![image-not-found](screenshots/ab-1000c-1000n.png)
+
 *Caption: 1000 clients and 1000 requests without -k flag*
 
 ![image-not-found](screenshots/ab-1000c-1000n-k.png)
+
 *Caption: 1000 clients and 1000 requests with -k flag*
 
 - The first test with high concurrency (1000) shows lower Requests per Second and higher Time per Request compared to the subsequent tests with lower concurrency.
