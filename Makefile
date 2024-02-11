@@ -2,7 +2,7 @@
 # this file will be used to deploy the web server and all the dependencies
 
 # pre-deploy - obtain the certicates
-# build the image used to pass the certbot test and get the certificates
+
 # first we stop the compose if is running, since cerbot test web server conflict 
 # with main web server
 stop_lab:
@@ -12,15 +12,15 @@ stop_lab:
 build_le_apache:
 	docker build -t lets-encrypt-apache certbot
 
-# run the container
+# run the web container used for the certbot test
 run_le_apache:
 	docker run -d --rm --name le_apache -p 8080:80 \
 		-v $$PWD/certbot/httpd.conf:/etc/apache2/httpd.conf \
 		-v $$PWD/certbot/html:/var/www/localhost/htdocs/ \
 		lets-encrypt-apache
 
-# get the certificates
-# the certifacates will be stored inside a docker volume called certs
+# run certbot to obtain the certs
+# the certificates will be stored inside a docker volume called certs
 run_certbot:
 	docker run -it --rm --name certbot \
 		-v $$PWD/certbot/html:/data/letsencrypt \
@@ -31,6 +31,7 @@ run_certbot:
 		--webroot-path=/data/letsencrypt \
 		-d nrk19.com -d www.nrk19.com -d grafana.nrk19.com -d uptime-kuma.nrk19.com
 
+# stop and remove the test web server
 stop_le_apache:
 	docker stop le_apache 
 
@@ -40,5 +41,5 @@ get_certs: stop_lab build_le_apache run_le_apache run_certbot stop_le_apache
 deploy: 
 	docker-compose up -d
 
-# all command to obtain certs and deploy
+# obtain certs and deploy the lab
 all: get_certs deploy
