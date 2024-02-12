@@ -44,11 +44,13 @@ Once our ports are mapped, we can keep going.
 
 ### Dynamic DNS setup
 
+> Only tested on IONOs.
+
 Since our ISP are not providing us an static IP we will need to set a solution to this. We chosen IONOS as our provider, so we will use the IONOS API. The first step is to get an **API key** that allow us to interact with the IONOS API. *See : [https://developer.hosting.ionos.es/docs/getstarted](https://developer.hosting.ionos.es/docs/getstarted)*.  
 
 Once we got our API key we will need to authorize the Dynamic DNS service to interact with our domain. We will go to [https://developer.hosting.ionos.es/docs/dns](https://developer.hosting.ionos.es/docs/dns) and click over **Authorize**.
 
-![image-not-found](#screenshots/ionos-dyndns-auth.png)
+![image-not-found](screenshots/ionos-dyndns-auth.png)
 *Caption: Authorize Dynamic DNS API.*
 
 Now we will make a POST request with the following content: 
@@ -82,10 +84,10 @@ If the request was successful, we will receive and answer similar to this:
 ```
 
 We will use the **updateUrl** to renew the IP of our domain. 
-`curl <update_url>`
+So to renew the IP, we just run: `curl <update_url>`
 
-To make sure that the IP is **always updated**, I created a container that is running cron and executing the curl command every minute, so as soon as the server is deployed, the IP is getting updated. 
-I simply created an image that will run cron over the official docker debian image. I passed it a simple script to update the IP (using the URL we previously obtained) and a crontab that will be running the script every minute.
+To make sure that the IP is **always updated**, We created a container that is running cron and updating the IP every minute, so as soon as the server is deployed, the IP is getting updated. 
+We simply created an image that will run cron (using the official Docker's Debian image as template) . We pass the container a simple script to update the IP (using the URL we previously obtained) and a crontab that will be running the script every minute.Also it will log the changes into **/var/log/cron.log** inside of the container.
 
 ```Dockerfile
 FROM debian:latest
@@ -108,7 +110,7 @@ CMD ["cron", "-f", "/etc/cron.d/cronjob"]
 
 In order to provide a safe an encrypted connection to our server, we will need a valid certificate. We will do it using [certbot](https://github.com/certbot/certbot) which is a docker image provide by **Let's encrypt**, an open and free certificate authority.
 
-We will need to create a temporary server, listening on port 80 and associated with the domain we want to certificate. In our case we will use the official apache image (httpd). Once we get the certificated we won't need it anymore. 
+We will need to create a temporary server listening on port 80 and associated with the domain we want to certificate. In our case we will use the official apache image (httpd). Once we get the certificated we won't need it anymore. 
 
 ```
 ├── certbot
@@ -120,7 +122,7 @@ We will need to create a temporary server, listening on port 80 and associated w
 
 With the following configuration file: 
 
-> Replace *ServerName* and *ServerAdmin* with your domain's info
+> Replace *nrk19.com* and *admin@nrk19.com* with your domain's info
 
 ```apache
 ServerRoot /usr/local/apache2
@@ -129,7 +131,7 @@ User www-data
 Group www-data
 
 ServerName nrk19.com
-ServerAdmin jcg@nrk19.com
+ServerAdmin admin@nrk19.com
 ServerTokens Prod
 ServerSignature Off
 
@@ -160,7 +162,7 @@ docker run -d --rm --name le_apache \
 ```
 *Fragment of [Makefile](Makefile)*
 
-With the server listening on port 80, we will run the **certbot** container to obtain the certificates with the command:
+With the server listening on port 80, we will now run the **certbot** container to obtain the certificates with the command:
 
 ```sh
 docker run -it --rm --name certbot \
@@ -174,13 +176,14 @@ docker run -it --rm --name certbot \
 ```
 *Fragment of [Makefile](Makefile)*
 
-The certificates will be created on the container's directory `/etc/letsencrypt/`, so to keep the certificates we will map that directory to a docker volume called **certs**, and we will map it later to our web server.
+The certificates will be created on the container's directory `/etc/letsencrypt/`, so to keep the certificates we will map that directory to a docker volume called **certs**, and we will link it later to our main web server.
 
 ### Apache configuration
 
-The main web server will be a container running the Docker official Apache image **httpd**.
+The main web server will be a Docker container running the official Apache image **httpd**.
 
 Container deploy options:
+
 ```yaml
 web:
   image: httpd:latest
@@ -189,17 +192,15 @@ web:
     - ./web/htdocs:/usr/local/apache2/htdocs
     - ./web/httpd.conf:/usr/local/apache2/conf/httpd.conf
     - certs:/etc/letsencrypt
-    - /home/nrk/crs/first/lms/proj/web-project:/usr/local/apache2/htdocs/canales
-    - /home/nrk/proj/web/tranvia-jorge:/usr/local/apache2/htdocs/tranvia
   ports:
     - 8080:80
     - 4443:443
 ```
 *Fragment of [compose.yaml](compose.yaml)*
 
-We will map the docker volume *certs* to the container directory **/etc/letsencrypt**. The certificates will be located at `**/etc/letsencrypt/live/[your-domain]/fullchain.pem** and **/etc/letsencrypt/live/[your-domain]/privkey.pem**. 
+We will map the docker volume *certs* to the container directory **/etc/letsencrypt**. The certificates will be located at **/etc/letsencrypt/live/[your-domain]/fullchain.pem** and **/etc/letsencrypt/live/[your-domain]/privkey.pem**. 
 
-Also we map the ports and the volumes we need to. 
+Also we will map the ports, and link the configuration file and the directory htdocs to the container.
 
 > [!NOTE]
 > The server will have two virtual hosts, one will be the *main server* and the other one will be the *Grafana* monitoring system (we will talk about this last one later). 
@@ -237,7 +238,7 @@ The main virtual host configuration is:
 ```
 *Fragment of [web/httpd.conf](web/httpd.conf)*
 
-Basically, we set a custom error documents, enable at Location /status the mod `mod_status` and configure Basic authentication at the same Location, and we will redirect the requests to /grafana to the **Grafana Virtual Host**. The request to /admin will be redirect to the **Uptime-Kuma virtual host**.
+Basically, we configure custom error documents, enable at the location /status the mod `mod_status`, and also configure Basic authentication at the same location. In addition, we will redirect the requests to /grafana to the **Grafana Virtual Host** and  the requests to /admin will be redirect to the **Uptime-Kuma virtual host**.
 
 The server will only provided SSL connections, so it will redirect all the requests it receives to port 80 to port 443 and it will refuse non-encrypted connections.
 
@@ -254,9 +255,9 @@ To provide our server with monitor and analytics functions, we will use [Grafana
 
 #### Prometheus configuration
 
-**Grafana** depends on **Prometheus** so we will need to configure it first.
+**Grafana** depends on a data source, we will use **Prometheus** to provide Grafana with the data it needs.
 
-Prometheus needs the server's data to make the queries and display the graphs. To obtain the server's data we can use apache_exporter. It will take the information given by the default `mod_status` (which is running on location /status in our server) and transform it into a format that is understood by prometheus. 
+Prometheus needs the server's data to make the queries and display the graphs. To obtain the server's data we can use **apache_exporter**. It will take the information given by the default `mod_status` (which is running on location /status in our server) and transform it into a format that is understood by prometheus. 
 
 So, the first step will be to obtain the server information. We will run the official apache_exporter container, and we will pass it the URL where we allocated the `mod_status` and the authentication (if needed). This is the container deploy config:
 
@@ -278,9 +279,9 @@ apache-exporter:
 
 > We will pass our URL with the `--scrape_uri` flag.
 
-The apache_exporter container will be listening at port 9117 and will be supplying the information needed by prometheus.
+The apache_exporter container will be listening at port 9117 and will be supplying the information needed by Prometheus.
 
-Now, we need to tell prometheus where to get the data. We will create a file called `prometheus.yaml`, and we will indicate the socket of the host that have the data we want to display. In this case **apache-exporter:9117**
+Now, we need to indicate Prometheus where to get the data. We will create a file called `prometheus.yaml`, and we will indicate the socket of the host that have the data we want to display. In this case **apache-exporter:9117**
 
 > [!NOTE]
 > Since we have all the containers in the same compose file, docker-compose will resolve the addresses for us.
@@ -338,9 +339,9 @@ grafana:
     - grafana_data:/var/lib/grafana
 ```
 
-> We created the docker volume called **grafana_data** and **prometheus_data** to have persistency of the data after we remove the container.
+> We created the docker volumes **grafana_data** and **prometheus_data** to have persistency of the data after we remove the containers.
 
-With the grafana container running, we will access with a navigator to the url **http://grafana:3000**. We will get into a login menu, the default credentials are: `user=admin password=admin`. 
+With the grafana container running, we will access with a navigator to the url **http://grafana:3000** and a login page will be prompted. The default credentials are: `user=admin password=admin`. 
 
 ![image-not-found](screenshots/grafana-login.png)
 
@@ -372,10 +373,10 @@ After we connect both services, we should be able to create a new dashboard.
 
 #### Grafana Virtual Host Creation
 
-Now we have **Grafana** running in our local network. What we can to do now is redirect all the requests made to **https://nrk19.com/grafana/** to our grafana container. We will add the following virtual host to our httpd.conf: (the Location authentication setup is optional)
+Now we have **Grafana** running in our local network. What we want to do now is redirect all the requests made to **https://nrk19.com/grafana/** to our grafana container. We will add the following virtual host to our httpd.conf: (the Location authentication setup is optional)
 
 > [!IMPORTANT]
-> For this virtual host to work, we will need to create a subdomain and configure it to point to the main domain. 
+> For this virtual host to work, we will need to create a subdomain and configure it so it points to the same IP address as the main domain.
 
 ```apache
 <VirtualHost *:443>
@@ -394,7 +395,7 @@ Now we have **Grafana** running in our local network. What we can to do now is r
 ```
 *Fragment of [web/httpd.conf](web/httpd.conf)*
 
-And add this line into our main virtual host.
+And now that the Virtual Host is created, we will add this line into our main virtual host.
 
 ```apache
 Redirect /grafana https://grafana.nrk19.com/
