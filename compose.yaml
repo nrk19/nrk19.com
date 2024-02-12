@@ -14,8 +14,6 @@ services:
     container_name: dyndns
     depends_on:
       - web
-    volumes:
-      - ./dyndns/cron.log:/var/log/cron.log
 
   # web container
   web:

@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install cron curl -y
 WORKDIR /app
 COPY update.sh /app/update.sh
 COPY update_url /app/update_url
-RUN chmod +x /app/update.sh
+RUN chmod +x /app/update.sh 
 COPY cronjob /etc/cron.d/cronjob
 RUN chmod 0644 /etc/cron.d/cronjob
 RUN crontab /etc/cron.d/cronjob

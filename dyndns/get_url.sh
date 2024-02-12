@@ -5,7 +5,7 @@
 # (using ionos API)
 
 API_KEY=$(cat user.key)
-curl -X "POST" "https://api.hosting.ionos.com/dns/v1/dyndns" \
+output=$(curl -X "POST" "https://api.hosting.ionos.com/dns/v1/dyndns" \
     -H "accept: application/json" \
     -H "X-API-Key: ${API_KEY}" \
     -H "Content-Type: application/json" \
@@ -17,4 +17,9 @@ curl -X "POST" "https://api.hosting.ionos.com/dns/v1/dyndns" \
             "grafana.nrk19.com"
         ],
         "description": "Dynamic DNS"
-    }'
+    }') 
+
+# process the curl and getting the updateUrl using jq
+updateUrl=$(echo "$output" | jq -r '.updateUrl')
+
+echo $updateUrl > update_url
