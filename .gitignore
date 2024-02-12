@@ -3,5 +3,5 @@ manual
 dyndns/cron.log
 htdocs/canales
 htdocs/tranvia
+dyndns/user.key
 dyndns/update_url
-dyndns/nrk19.dyndns
