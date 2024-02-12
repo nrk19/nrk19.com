@@ -48,7 +48,7 @@ Since our ISP are not providing us an static IP we will need to set a solution t
 
 Once we got our API key we will need to authorize the Dynamic DNS service to interact with our domain. We will go to [https://developer.hosting.ionos.es/docs/dns](https://developer.hosting.ionos.es/docs/dns) and click over **Authorize**.
 
-![image-not-found](#screenshots/ionos-dns-auth.png)
+![image-not-found](#screenshots/ionos-dyndns-auth.png)
 *Caption: Authorize Dynamic DNS API.*
 
 Now we will make a POST request with the following content: 
