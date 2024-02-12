@@ -1,5 +1,6 @@
 manual
 .vscode
+dyndns/cron.log
 htdocs/canales
 htdocs/tranvia
 dyndns/update_url
