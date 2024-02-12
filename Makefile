@@ -24,7 +24,7 @@ run_le_apache:
 # the certificates will be stored inside a docker volume called "certs"
 run_certbot:
 	docker run -it --rm --name certbot \
-		-v $$PWD/certbot/html:/data/letsencrypt \
+		-v $$PWD/certbot/htdocs:/data/letsencrypt \
 		-v certs:/etc/letsencrypt \
 		certbot/certbot \
 		certonly --webroot \
