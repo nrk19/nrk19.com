@@ -27,7 +27,7 @@ Dependencies:
 The deployment was automated using `make` and `docker-compose`. 
 
 > [!IMPORTANT]
-> For the SSL certs to work you will need to replace *nrk19.com* with your domain in the config files ([Makefile](Makefile), [web/httpd.conf](web/httpd.conf) and [certbot/httpd.conf](certbot/httpd.conf)).
+> For the SSL certs to work you will need to edit [.env](.env) and replace the values with the your server info.
 
 - Deploy the server and generate/renew SSL certificates: `make all`
 - Just deploy the server without generating new certificates: `make deploy`
