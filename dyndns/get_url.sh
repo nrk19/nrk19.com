@@ -22,4 +22,6 @@ output=$(curl -X "POST" "https://api.hosting.ionos.com/dns/v1/dyndns" \
 # process the curl and getting the updateUrl using jq
 updateUrl=$(echo "$output" | jq -r '.updateUrl')
 
+# save the url into a file and output its content
 echo $updateUrl > update_url
+cat update_url

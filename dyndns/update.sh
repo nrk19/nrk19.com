@@ -1,6 +1,6 @@
 #!/bin/sh
 # update.sh
-# (we can obtain the URL using the script get_url.sh)
+# (you can obtain the URL using the script get_url.sh)
 
 curl $(cat /app/update_url)
 if [ $? -ne 0 ]; then

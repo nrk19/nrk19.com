@@ -86,6 +86,9 @@ If the request was successful, we will receive and answer similar to this:
 We will use the **updateUrl** to renew the IP of our domain. 
 So to renew the IP, we just run: `curl <update_url>`
 
+> You can obtain the url to update your IP by creating a file called user.key with your IONOS' API key and running the script [get_url](dyndns/get_url.sh).
+> the script will generated the file **update_url**, needed by the cron's container. 
+
 To make sure that the IP is **always updated**, We created a container that is running cron and updating the IP every minute, so as soon as the server is deployed, the IP is getting updated. 
 We simply created an image that will run cron (using the official Docker's Debian image as template) . We pass the container a simple script to update the IP (using the URL we previously obtained) and a crontab that will be running the script every minute.Also it will log the changes into **/var/log/cron.log** inside of the container.
 
