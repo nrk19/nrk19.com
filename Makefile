@@ -5,7 +5,9 @@
 #  - `make all` will obtain the ssl certs and deploy the server
 #  - `make deploy` will deploy the server without obtaining new ssl certificates
 
-# first we stop the servere if is running, since cerbot test web server conflicts with main server
+include .env
+
+# first we stop the containers (if running), since cerbot test web server conflicts with main server
 stop:
 	docker-compose down
 
@@ -26,9 +28,9 @@ run_certbot:
 		-v certs:/etc/letsencrypt \
 		certbot/certbot \
 		certonly --webroot \
-		--email jcg@nrk19.com --agree-tos --no-eff-email \
+		--email ${SERVER_ADMIN} --agree-tos --no-eff-email \
 		--webroot-path=/data/letsencrypt \
-		-d nrk19.com -d www.nrk19.com -d grafana.nrk19.com -d uptime-kuma.nrk19.com
+		-d ${MAIN_DOMAIN_NAME} -d www.nrk19.com -d grafana.nrk19.com -d uptime-kuma.nrk19.com
 
 # stop and remove the test web server
 stop_le_apache:

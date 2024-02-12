@@ -21,28 +21,15 @@ services:
   web:
     image: httpd:latest
     container_name: web
+    env_file:
+      - .env
     volumes:
       - ./web/htdocs:/usr/local/apache2/htdocs
       - ./web/httpd.conf:/usr/local/apache2/conf/httpd.conf
       - certs:/etc/letsencrypt
-      - /home/nrk/crs/first/lms/proj/web-project:/usr/local/apache2/htdocs/canales
-      - /home/nrk/proj/web/tranvia-jorge:/usr/local/apache2/htdocs/tranvia
     ports:
       - 8080:80
       - 4443:443
-
-  # uptime-kuma container (to monitore server's status)
-  uptime-kuma:
-    image: louislam/uptime-kuma:1
-    container_name: uptime-kuma
-    depends_on:
-      - web
-    restart: always    
-    environment:
-      UPTIME_KUMA_HOST: 0.0.0.0
-      UPTIME_KUMA_PORT: 3001
-    volumes:
-      - uptime-kuma_data:/app/data  
 
   # grafana + prometheus configuration 
   # apache exporter container - to obtain the data from server mod_status and use them with prometheus
