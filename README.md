@@ -25,27 +25,31 @@ Dependencies:
 ## Deploy
 
 The deployment was automated using `make` and `docker-compose`. 
-> [!NOTE]
-> For the SSL certs to work you will need to replace *nrk19.com* with your domain in the config files ([Makefile](Makefile), [web/httpd.conf](web/httpd.conf) and [certbot/httpd.conf](certbot/httpd.conf))
-- Deploy generating/renewing SSL certificates: `make all`
 
+> [!IMPORTANT]
+> For the SSL certs to work you will need to replace *nrk19.com* with your domain in the config files ([Makefile](Makefile), [web/httpd.conf](web/httpd.conf) and [certbot/httpd.conf](certbot/httpd.conf)).
+
+- Deploy the server and generate/renew SSL certificates: `make all`
 - Just deploy the server without generating new certificates: `make deploy`
 
 ## Previous configuration
 
 ### Router configuration
 
-For our server to  be accessible from the Internet, we will need to map the ports from our router to our server, since the server itself doesn't have a public IP (due to NAT protocol), it accesses to the Internet through the router's IP.
+Since the server itself doesn't have a public IP (due to NAT protocol), it accesses to the Internet through the router's IP, so for our web to be accessible from the Internet, we will need to map the port 80 and 443 from our router to our server. So all the requests done to our router's public IP will be redirect to our server.
 
-In most cases we can access to the router configuration by writing our router local IP in a web navigator, and then we will look for the ports section. Our intention is to map the port **80** and **443** of our router to the ports **80** and **443** in our server, so the requests done by the users can be listened by our server.
+In most cases we can access to the router configuration by writing our router local IP in a web navigator, and then we will look for the ports section. Sometimes we can locate it in the *Advanced configuration* section, sometimes it will be called *NAT/PAT*, but it will totally depends on the router, so the best way to do it is to check your router's manual.
 
-Once our ports are mapped from router to server, we can keep going.
+Once our ports are mapped, we can keep going.
 
 ### Dynamic DNS setup
 
 Since our ISP are not providing us an static IP we will need to set a solution to this. We chosen IONOS as our provider, so we will use the IONOS API. The first step is to get an **API key** that allow us to interact with the IONOS API. *See : [https://developer.hosting.ionos.es/docs/getstarted](https://developer.hosting.ionos.es/docs/getstarted)*.  
 
 Once we got our API key we will need to authorize the Dynamic DNS service to interact with our domain. We will go to [https://developer.hosting.ionos.es/docs/dns](https://developer.hosting.ionos.es/docs/dns) and click over **Authorize**.
+
+![image-not-found](#screenshots/ionos-dns-auth.png)
+*Caption: Authorize Dynamic DNS API.*
 
 Now we will make a POST request with the following content: 
 > Where *API_KEY* is your valid API key and *nrk19.com* is your domain
@@ -279,7 +283,7 @@ The apache_exporter container will be listening at port 9117 and will be supplyi
 Now, we need to tell prometheus where to get the data. We will create a file called `prometheus.yaml`, and we will indicate the socket of the host that have the data we want to display. In this case **apache-exporter:9117**
 
 > [!NOTE]
-> Since we have all the container in the same compose file, docker-compose will resolve the addresses for us
+> Since we have all the containers in the same compose file, docker-compose will resolve the addresses for us.
 
 ```yaml
 global:
@@ -370,7 +374,7 @@ After we connect both services, we should be able to create a new dashboard.
 
 Now we have **Grafana** running in our local network. What we can to do now is redirect all the requests made to **https://nrk19.com/grafana/** to our grafana container. We will add the following virtual host to our httpd.conf: (the Location authentication setup is optional)
 
-> [!NOTE]
+> [!IMPORTANT]
 > For this virtual host to work, we will need to create a subdomain and configure it to point to the main domain. 
 
 ```apache
