@@ -1,5 +1,6 @@
 manual
 .vscode
+TODO.md
 dyndns/cron.log
 htdocs/canales
 htdocs/tranvia
