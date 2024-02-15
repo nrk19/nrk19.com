@@ -31,6 +31,8 @@ run_certbot:
 		--email ${SERVER_ADMIN} --agree-tos --no-eff-email \
 		--webroot-path=/data/letsencrypt \
 		-d ${MAIN_DOMAIN_NAME} -d www.nrk19.com -d grafana.nrk19.com -d uptime-kuma.nrk19.com
+	# temporary container to adapt the certs files name to haproxy.cfg
+	docker run --rm -v certs:/mnt alpine mv /mnt/live/${MAIN_DOMAIN_NAME}/privkey.pem /mnt/live/${MAIN_DOMAIN_NAME}/fullchain.pem.key
 
 # stop and remove the test web server
 stop_le_apache:
@@ -41,7 +43,6 @@ get_certs: stop run_le_apache run_certbot stop_le_apache
 # deploy the server using docker-compose 
 deploy: stop
 	docker-compose up -d
-	./test.sh
 
 # obtain certs and deploy the lab
 all: get_certs deploy

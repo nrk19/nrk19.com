@@ -13,17 +13,37 @@ services:
     build: ./dyndns
     container_name: dyndns
     depends_on:
-      - web
+      - web_1
+      - web_2
 
-  # web container
-  web:
+  # web containers
+  web_1:
     image: httpd:latest
-    container_name: web
+    container_name: web_1
     env_file:
       - .env
     volumes:
       - ./web/htdocs:/usr/local/apache2/htdocs
       - ./web/httpd.conf:/usr/local/apache2/conf/httpd.conf
+    expose:
+      - 80
+
+  web_2:
+    container_name: web_2
+    extends:
+      service: web_1
+
+  # load balancer (haproxy)
+  haproxy:
+    image: haproxy:2.3
+    container_name: haproxy
+    env_file:
+      - .env
+    depends_on:
+      - web_1
+      - web_2
+    volumes:
+      - ./web/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
       - certs:/etc/letsencrypt
     ports:
       - 8080:80
@@ -35,7 +55,8 @@ services:
     image: lusotycoon/apache-exporter
     container_name: apache-exporter
     depends_on:
-      - web
+      - web_1
+      - web_2
     privileged: true
     expose:
       - 9117
@@ -63,13 +84,16 @@ services:
     expose:
       - 9090
 
-  # grafana container
-  grafana:
+  # grafana containers
+  grafana_1:
     image: grafana/grafana
-    container_name: grafana
-    depends_on:
-      - prometheus
+    container_name: grafana_1
     expose:
       - 3000
     volumes:
       - grafana_data:/var/lib/grafana
+
+  grafana_2:
+    container_name: grafana_2
+    extends: 
+      service: grafana_1
