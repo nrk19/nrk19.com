@@ -9,7 +9,7 @@ include .env
 
 # first we stop the containers (if running), since cerbot test web server conflicts with main server
 stop:
-	docker-compose down
+	docker-compose down >/dev/null 2>&1
 
 
 # run the web container used for the certbot test
