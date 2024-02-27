@@ -85,15 +85,10 @@ services:
       - 9090
 
   # grafana containers
-  grafana_1:
+  grafana:
     image: grafana/grafana
-    container_name: grafana_1
+    container_name: grafana
     expose:
       - 3000
     volumes:
       - grafana_data:/var/lib/grafana
-
-  grafana_2:
-    container_name: grafana_2
-    extends: 
-      service: grafana_1
