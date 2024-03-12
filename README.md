@@ -8,19 +8,22 @@ Dependencies:
 - `make`
 
 ## Table of contents
+- [Web Server Deploy](#web-server-deploy)
+  - [Table of contents](#table-of-contents)
   - [Deploy](#deploy)
   - [Previous configuration](#previous-configuration)
     - [Router configuration](#router-configuration)
     - [Dynamic DNS setup](#dynamic-dns-setup)
   - [Web server configuration](#web-server-configuration)
-    - [Obtain the SSL certificates using Certbot](#obtaining-ssl-certificates-with-certbot)
+    - [Obtain SSL certificates with Certbot](#obtain-ssl-certificates-with-certbot)
+    - [Haproxy configuration](#haproxy-configuration)
     - [Apache configuration](#apache-configuration)
     - [Grafana and Prometheus monitoring tools](#grafana-and-prometheus-monitoring-tools)
       - [Prometheus configuration](#prometheus-configuration)
       - [Grafana configuration](#grafana-configuration)
-      - [Grafana virtual host creation](#grafana-virtual-host-creation)
+      - [Grafana Virtual Host Creation](#grafana-virtual-host-creation)
   - [Benchmark](#benchmark)
-      - [Conclusions](#conclusions)
+    - [Conclusions](#conclusions)
 
 ## Deploy
 
@@ -179,7 +182,43 @@ docker run -it --rm --name certbot \
 ```
 *Fragment of [Makefile](Makefile)*
 
-The certificates will be created on the container's directory `/etc/letsencrypt/`, so to keep the certificates we will map that directory to a docker volume called **certs**, and we will link it later to our main web server.
+The certificates will be created on the container's directory `/etc/letsencrypt/`, so to keep the certificates we will map that directory to a docker volume called **certs**, and we will link it later to our main web server proxy.
+
+### Haproxy configuration
+
+The frontend of the web server will be haproxy, that will act as a load balancer and will redirect the requests made to our domain to our internal servers. It will provided encrypted connection between server and client and then it will redirect the requests in plain text to one of our internal servers. 
+
+Configuration of the frontend:
+
+```conf
+frontend web-frontend
+	bind *:80
+	bind *:443 ssl crt "/etc/letsencrypt/live/${MAIN_DOMAIN_NAME}/fullchain.pem" 
+	redirect scheme https code 301 if !{ ssl_fc }
+	mode http
+	acl is_grafana hdr(host) -i "${GRAFANA_SUBDOMAIN}"
+	use_backend grafana-servers if is_grafana
+	default_backend web-servers
+```
+*Fragment of [web/haproxy.cfg](web/haproxy.cfg)*
+
+As we can see, haproxy will be listening in both port 80 and 443, and it will redirect the requests to our internal server, depending on the request made.
+
+Configuration of the backend:
+
+```conf
+backend web-servers
+	mode http
+	balance roundrobin
+	server web1 web_1:80 check
+	server web2 web_2:80 check
+
+backend grafana-servers
+	mode http
+	server grafana grafana:3000 check
+
+```
+*Fragment of [web/haproxy.cfg](web/haproxy.cfg)*
 
 ### Apache configuration
 
@@ -195,15 +234,14 @@ web:
     - ./web/htdocs:/usr/local/apache2/htdocs
     - ./web/httpd.conf:/usr/local/apache2/conf/httpd.conf
     - certs:/etc/letsencrypt
-  ports:
-    - 8080:80
-    - 4443:443
+  expose:
+    - 80
 ```
 *Fragment of [compose.yaml](compose.yaml)*
 
 We will map the docker volume *certs* to the container directory **/etc/letsencrypt**. The certificates will be located at **/etc/letsencrypt/live/[your-domain]/fullchain.pem** and **/etc/letsencrypt/live/[your-domain]/privkey.pem**. 
 
-Also we will map the ports, and link the configuration file and the directory htdocs to the container.
+Also we will map the ports and link the configuration file and the directory htdocs to the container.
 
 > [!NOTE]
 > The server will have two virtual hosts, one will be the *main server* and the other one will be the *Grafana* monitoring system (we will talk about this last one later). 
@@ -211,7 +249,7 @@ Also we will map the ports, and link the configuration file and the directory ht
 The main virtual host configuration is:
 
 ```apache
-<VirtualHost *:443>
+<VirtualHost *:80>
     ServerName www.nrk19.com
     DocumentRoot "/usr/local/apache2/htdocs"
     ErrorDocument 404 /error404.html
@@ -233,24 +271,11 @@ The main virtual host configuration is:
         SetHandler server-status
         Require user sysadmin
     </Location>
-
-    # redirect /admin and /grafana to its virtual sites
-    Redirect /admin https://uptime-kuma.nrk19.com/
-    Redirect /grafana https://grafana.nrk19.com/
 </VirtualHost>
 ```
 *Fragment of [web/httpd.conf](web/httpd.conf)*
 
-Basically, we configure custom error documents, enable at the location /status the mod `mod_status`, and also configure Basic authentication at the same location. In addition, we will redirect the requests to /grafana to the **Grafana Virtual Host** and  the requests to /admin will be redirect to the **Uptime-Kuma virtual host**.
-
-The server will only provided SSL connections, so it will redirect all the requests it receives to port 80 to port 443 and it will refuse non-encrypted connections.
-
-```apache
-<VirtualHost *:80>
-    Redirect / https://www.nrk19.com:443/
-</VirtualHost>
-```
-*Fragment of [web/httpd.conf](web/httpd.conf)*
+Basically, we configure custom error documents, enable at the location /status the mod `mod_status`, and also configure Basic authentication at the same location. 
 
 ### Grafana and Prometheus monitoring tools
 
@@ -381,29 +406,22 @@ Now we have **Grafana** running in our local network. What we want to do now is 
 > [!IMPORTANT]
 > For this virtual host to work, we will need to create a subdomain and configure it so it points to the same IP address as the main domain.
 
-```apache
-<VirtualHost *:443>
-    ServerName grafana.nrk19.com
-    ProxyPreserveHost on
-    ProxyPass / http://grafana:3000/
-    ProxyPassReverse / http://grafana:3000/
+And now that the Virtual Host is created, we will add this lines into our main frontend haproxy's block:
 
-    <Location "/">
-        AuthType Digest
-        AuthName "admin"
-        AuthUserFile "/usr/local/apache2/htdocs/.htpasswd"
-        Require user admin
-    </Location>
-</VirtualHost>
+```conf
+acl is_grafana hdr(host) -i "${GRAFANA_SUBDOMAIN}"
+use_backend grafana-servers if is_grafana
 ```
-*Fragment of [web/httpd.conf](web/httpd.conf)*
+*Fragment of [web/haproxy.cfg](web/haproxy.cfg)*
 
-And now that the Virtual Host is created, we will add this line into our main virtual host.
+So all the requests that contains 'grafana' in the Host's header, will be redirected to our grafana server. Also, we will need a backend block for grafana: 
 
-```apache
-Redirect /grafana https://grafana.nrk19.com/
+```conf
+backend grafana-servers
+	mode http
+	server grafana grafana:3000 check
 ```
-*Fragment of [web/httpd.conf](web/httpd.conf)*
+*Fragment of [web/haproxy.cfg](web/haproxy.cfg)*
 
 ## Benchmark
 
