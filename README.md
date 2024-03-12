@@ -27,7 +27,7 @@ Dependencies:
 The deployment was automated using `make` and `docker-compose`. 
 
 > [!IMPORTANT]
-> For the SSL certs to work you will need to edit [.env](.env) and replace the values with the your server info.
+> For the SSL certs to work you will need to edit the file [.env](.env), fullfulling with your domain's domain information.
 
 - Deploy the server and generate/renew SSL certificates: `make all`
 - Just deploy the server without generating new certificates: `make deploy`
